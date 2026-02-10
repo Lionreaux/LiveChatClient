@@ -604,6 +604,14 @@ app.whenReady().then(() => {
     createTray();
     log('✅ Toutes les fenêtres créées');
 
+        // Vérifier les mises à jour au démarrage
+    log('🔍 Lancement de la vérification des mises à jour...');
+    setTimeout(() => {
+      autoUpdater.checkForUpdates().catch(err => {
+        log(`❌ Erreur lors de la vérification: ${err.message}`);
+      });
+    }, 5000); // Attendre 3 secondes après le démarrage
+
     // Enregistrer les raccourcis clavier globaux
     log('⌨️ Enregistrement des raccourcis clavier globaux...');
 
