@@ -11,7 +11,7 @@
     "build:dir": "electron-builder --dir"
   },
   "keywords": ["electron", "overlay", "media"],
-  "author": "ChatDiscord Team",
+  "author": "Lionreaux",
   "license": "MIT",
   "dependencies": {
     "electron-store": "^8.1.0",
