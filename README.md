@@ -8,7 +8,7 @@ Client Electron pour ChatDiscord avec support d'overlay.
 npm install
 ```
 
-## ⚙️ Configuration
+## ⚙️ Configuration ( pas d'actualité / mis en pause)
 
 1. Copiez le fichier `.env.example` en `.env` :
 ```bash
