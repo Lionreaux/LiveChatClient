@@ -1,6 +1,6 @@
 {
   "name": "livechat-electron-client",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "Client Electron pour LiveChat avec overlay",
   "main": "src/main/index.js",
   "type": "module",
