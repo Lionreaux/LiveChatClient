@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overlay</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: transparent;
+      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      user-select: none;
+    }
+
+    #overlay-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.05);
+      backdrop-filter: blur(3px);
+      animation: fadeIn 0.3s ease-in;
+      opacity: 0;
+    }
+
+    #overlay-container.fullscreen {
+      background: rgba(0, 0, 0, 0);
+      backdrop-filter: none;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #overlay-container.show {
+      display: flex;
+      opacity: 1;
+    }
+
+    .media-container {
+      max-width: 80%;
+      max-height: 80%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      animation: slideIn 0.4s ease-out;
+    }
+
+    #overlay-container.fullscreen .media-container {
+      max-width: 100%;
+      max-height: 100%;
+      width: 100vw;
+      height: 100vh;
+      gap: 0;
+    }
+
+    #overlay-container.fullscreen #media,
+    #overlay-container.fullscreen #media-image,
+    #overlay-container.fullscreen #media-video {
+      max-width: 100vw;
+      max-height: 100vh;
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+      object-fit: cover;
+    }
+
+    .sender-info {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(47, 49, 54, 0.95);
+      padding: 8px 16px 8px 8px;
+      border-radius: 50px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    .sender-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #7289da;
+    }
+
+    .sender-name {
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    #media {
+      max-width: 100%;
+      max-height: 70vh;
+      border-radius: 15px;
+      box-shadow: none;
+    }
+    
+    /* En fullscreen, forcer 100% de l'écran */
+    #overlay-container.fullscreen #media-image,
+    #overlay-container.fullscreen #media-video {
+      max-height: 100vh !important;
+      border-radius: 0 !important;
+    }
+
+    #text {
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 20px 40px;
+      border-radius: 10px;
+      font-size: 28px;
+      font-weight: bold;
+      text-align: center;
+      max-width: 90%;
+      word-wrap: break-word;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    #text.top {
+      order: -1;
+    }
+
+    #text.bottom {
+      order: 1;
+    }
+
+    .reactions {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .reaction-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      font-size: 30px;
+      cursor: pointer;
+      transition: all 0.2s;
+      backdrop-filter: blur(10px);
+    }
+
+    .reaction-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+
+    .reaction-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Conteneur pour positions expérimentales */
+    #experimental-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 10000;
+      display: block;
+      background: transparent;
+    }
+
+    .experimental-media {
+      position: absolute;
+      max-width: none;
+      max-height: none;
+      display: block;
+    }
+
+    .experimental-media img,
+    .experimental-media video {
+      width: auto;
+      height: auto;
+      display: block;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+      border-radius: 8px;
+      max-width: none;
+      max-height: none;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sender info en haut à gauche -->
+  <div id="sender-info" class="sender-info" style="display: none;">
+    <img id="sender-avatar" class="sender-avatar" />
+    <span id="sender-name" class="sender-name"></span>
+  </div>
+
+  <div id="overlay-container">
+    <div class="media-container">
+      <div id="media-wrapper">
+        <img id="media-image" style="display: none;" />
+        <video id="media-video" style="display: none;" autoplay></video>
+        <audio id="media-audio" style="display: none;" autoplay></audio>
+      </div>
+      
+      <div id="text" style="display: none;"></div>
+      
+      <!-- Réactions désactivées
+      <div class="reactions">
+        <button class="reaction-btn" data-reaction="😂" title="MDR">😂</button>
+        <button class="reaction-btn" data-reaction="❤️" title="J'adore">❤️</button>
+        <button class="reaction-btn" data-reaction="😮" title="Wow">😮</button>
+        <button class="reaction-btn" data-reaction="😡" title="Rage">😡</button>
+      </div>
+      -->
+    </div>
+    
+    </div>
+    
+    <!-- Conteneur pour positions expérimentales - EN DEHORS du overlay-container -->
+  </div>
+
+  <div id="experimental-container" style="display: none;"></div>
+
+  <script src="overlay.js"></script>
+</body>
+</html>

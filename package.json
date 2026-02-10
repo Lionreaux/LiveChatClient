@@ -1,0 +1,81 @@
+{
+  "name": "livechat-electron-client",
+  "version": "1.0.10",
+  "description": "Client Electron pour LiveChat avec overlay",
+  "main": "src/main/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder --win --x64",
+    "build:dir": "electron-builder --dir"
+  },
+  "keywords": [
+    "electron",
+    "overlay",
+    "media"
+  ],
+  "author": "Lionreaux",
+  "license": "MIT",
+  "dependencies": {
+    "electron-store": "^8.1.0",
+    "socket.io-client": "^4.7.2",
+    "axios": "^1.6.2",
+    "electron-updater": "^6.1.7"
+  },
+  "devDependencies": {
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.livechat.client",
+    "productName": "LiveChat",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "extraFiles": [
+      {
+        "from": ".env",
+        "to": ".env",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "Lionreaux",
+      "repo": "LiveChatClient"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "publisherName": "LiveChat",
+      "verifyUpdateCodeSignature": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "shortcutName": "LiveChat",
+      "runAfterFinish": true
+    }
+  }
+}
