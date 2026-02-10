@@ -1,6 +1,6 @@
 {
   "name": "livechat-electron-client",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Client Electron pour LiveChat avec overlay",
   "main": "src/main/index.js",
   "type": "module",
@@ -8,7 +8,8 @@
     "start": "electron .",
     "dev": "electron . --dev",
     "build": "electron-builder --win --x64",
-    "build:dir": "electron-builder --dir"
+    "build:dir": "electron-builder --dir",
+    "publish": "electron-builder --win --x64 --publish always"
   },
   "keywords": [
     "electron",
@@ -30,6 +31,7 @@
   "build": {
     "appId": "com.livechat.client",
     "productName": "LiveChat",
+    "artifactName": "${productName}-Setup-${version}.${ext}",
     "directories": {
       "output": "dist"
     },
