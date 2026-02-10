@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import Store from 'electron-store';
 import { io } from 'socket.io-client';
 import fs from 'fs';
+import { autoUpdater } from 'electron-updater';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -59,18 +60,137 @@ let mediaQueue = [];
 let isDisplayingMedia = false;
 
 // Configuration
-// Les URLs doivent être définies dans le fichier .env
-const BACKEND_URL = process.env.BACKEND_URL;
-const WS_URL = process.env.WS_URL;
-
-if (!BACKEND_URL || !WS_URL) {
-  log('❌ ERREUR: Les variables BACKEND_URL et WS_URL doivent être définies dans le fichier .env');
-  app.quit();
-}
+// En production, utiliser les URLs déployées, en dev utiliser localhost
+// ⚠️ Mettre à jour avec votre URL Render ou utiliser un fichier .env
+const BACKEND_URL = process.env.BACKEND_URL || 'https://chatdiscord-backend.onrender.com';
+const WS_URL = process.env.WS_URL || 'https://chatdiscord-backend.onrender.com';
 
 log('🔧 Configuration chargée:');
 log(`   BACKEND_URL: ${BACKEND_URL}`);
 log(`   WS_URL: ${WS_URL}`);
+
+// ============================================
+// CONFIGURATION AUTO-UPDATE
+// ============================================
+
+// Configurer autoUpdater
+autoUpdater.logger = {
+  info: (msg) => log(`[AutoUpdater] ℹ️ ${msg}`),
+  warn: (msg) => log(`[AutoUpdater] ⚠️ ${msg}`),
+  error: (msg) => log(`[AutoUpdater] ❌ ${msg}`),
+  debug: (msg) => log(`[AutoUpdater] 🐛 ${msg}`)
+};
+
+// Désactiver l'auto-download pour contrôler manuellement
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = true;
+
+// Événements de l'auto-updater
+autoUpdater.on('checking-for-update', () => {
+  log('🔍 Vérification des mises à jour...');
+  if (tray) {
+    updateTrayMenu('Vérification des mises à jour...');
+  }
+});
+
+autoUpdater.on('update-available', (info) => {
+  log(`✨ Mise à jour disponible: v${info.version}`);
+  log(`   Taille: ${(info.files[0]?.size / 1024 / 1024).toFixed(2)} MB`);
+
+  if (tray) {
+    updateTrayMenu(`Téléchargement v${info.version}...`);
+  }
+
+  // Télécharger automatiquement
+  autoUpdater.downloadUpdate();
+});
+
+autoUpdater.on('update-not-available', (info) => {
+  log(`✅ Application à jour (v${info.version})`);
+  if (tray) {
+    updateTrayMenu(null); // Retirer le message
+  }
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+  const percent = progressObj.percent.toFixed(1);
+  log(`📥 Téléchargement: ${percent}% (${progressObj.transferred}/${progressObj.total} bytes)`);
+
+  if (tray) {
+    updateTrayMenu(`Téléchargement: ${percent}%`);
+  }
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+  log(`✅ Mise à jour téléchargée: v${info.version}`);
+  log('🔄 Installation et redémarrage dans 5 secondes...');
+
+  if (tray) {
+    updateTrayMenu('Redémarrage pour mise à jour...');
+  }
+
+  // Installer et redémarrer après 5 secondes
+  setTimeout(() => {
+    autoUpdater.quitAndInstall(false, true);
+  }, 5000);
+});
+
+autoUpdater.on('error', (err) => {
+  log(`❌ Erreur auto-update: ${err.message}`);
+  if (tray) {
+    updateTrayMenu(null);
+  }
+});
+
+// Fonction helper pour mettre à jour le menu tray
+function updateTrayMenu(updateMessage) {
+  if (!tray) return;
+
+  const doNotDisturb = store.get('doNotDisturb', false);
+
+  const menuTemplate = [
+    {
+      label: 'Ouvrir',
+      click: () => mainWindow.show()
+    },
+    {
+      label: 'Mode Ne pas déranger',
+      type: 'checkbox',
+      checked: doNotDisturb,
+      click: (item) => {
+        store.set('doNotDisturb', item.checked);
+        if (socket) {
+          socket.emit('settings:update', { doNotDisturb: item.checked });
+        }
+      }
+    },
+    { type: 'separator' }
+  ];
+
+  // Ajouter le message de mise à jour si présent
+  if (updateMessage) {
+    menuTemplate.push({
+      label: updateMessage,
+      enabled: false
+    });
+    menuTemplate.push({ type: 'separator' });
+  }
+
+  menuTemplate.push({
+    label: 'Quitter',
+    click: () => {
+      app.isQuitting = true;
+      app.quit();
+    }
+  });
+
+  const contextMenu = Menu.buildFromTemplate(menuTemplate);
+  tray.setContextMenu(contextMenu);
+}
+
+// ============================================
+// FIN CONFIGURATION AUTO-UPDATE
+// ============================================
 
 function createMainWindow() {
   log('📱 Création de la fenêtre principale...');

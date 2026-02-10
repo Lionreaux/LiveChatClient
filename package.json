@@ -1,6 +1,6 @@
 {
   "name": "chatdiscord-electron-client",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Client Electron pour ChatDiscord avec overlay",
   "main": "src/main/index.js",
   "type": "module",
